@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.text.Font?>
+
+<AnchorPane xmlns:fx="http://javafx.com/fxml" fx:controller="org.openjfx.FXMLController">
+    <children>
+        <!-- TextField for repository URL -->
+        <TextField fx:id="repoUrlField" layoutX="50" layoutY="20" prefWidth="400" promptText="Enter repository URL"/>
+
+        <!-- Button to clone or pull repository -->
+        <Button text="Clone/Pull Repository" layoutX="470" layoutY="20" onAction="#handleCloneRepository"/>
+
+        <!-- ComboBox for language selection -->
+        <ComboBox fx:id="languageComboBox" layoutX="50" layoutY="60" prefWidth="400" visible="false"/>
+
+        <!-- Button to select project directory -->
+        <Button text="Select Project Directory" layoutX="50" layoutY="100" onAction="#handleSelectProject"/>
+
+        <!-- Label to display detected or selected language -->
+        <Label fx:id="outputLabel" text="Detected Language: " layoutX="50" layoutY="150">
+            <font>
+                <Font name="System Bold" size="14"/>
+            </font>
+        </Label>
+
+        <!-- TextArea for output logs -->
+        <TextArea fx:id="outputTextArea" layoutX="50" layoutY="200" prefWidth="500" prefHeight="200" wrapText="true" editable="false"/>
+
+        <!-- CheckBox to toggle test phase -->
+        <CheckBox fx:id="testCheckBox" text="Run Tests" layoutX="50" layoutY="420" selected="true"/>
+
+        <!-- Button to trigger language selection and build -->
+        <Button text="Run Build" layoutX="50" layoutY="450" onAction="#handleLanguageSelection"/>
+    </children>
+</AnchorPane>

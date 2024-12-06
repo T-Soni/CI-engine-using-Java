@@ -1,34 +1,43 @@
 plugins {
-    id 'org.openjfx.javafxplugin' version '0.0.13'  // JavaFX plugin
-    id 'java'  // Java plugin for compiling and packaging
-    id 'application'  // Plugin for running Java applications
-}
-
-dependencies {
-    implementation 'org.apache.commons:commons-text:1.9'  // Specify version for commons-text
-    implementation 'org.openjfx:javafx-controls:17'  // JavaFX Controls
-    implementation 'org.openjfx:javafx-fxml:17'  // JavaFX FXML
+    // Apply the application plugin to add support for building a CLI application in Java.
+    id 'application'
+    id("org.openjfx.javafxplugin") version "0.0.10"
 }
 
 repositories {
-    mavenCentral()  // Repository for dependencies
+    // Use Maven Central for resolving dependencies.
+    mavenCentral()
 }
 
-application {
-    mainClass = 'UI.JavaFXApp'  // Your application's main class (must exist)
+dependencies {
+    // Use JUnit Jupiter for testing.
+    testImplementation libs.junit.jupiter
+
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+    // This dependency is used by the application.
+    // implementation libs.guava
+    implementation 'com.google.guava:guava:32.1.1-jre'
 }
 
+// Apply a specific Java toolchain to ease working on different environments.
 java {
-    sourceCompatibility = JavaVersion.VERSION_17  // Java source compatibility (Java 17)
-    targetCompatibility = JavaVersion.VERSION_17  // Target compatibility (Java 17)
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
 }
 
 javafx {
-    version = '17'  // JavaFX version
-    modules = ['javafx.controls', 'javafx.fxml']  // JavaFX modules required for the application
+    version = "21"
+    modules = ["javafx.controls", "javafx.fxml"]
 }
 
-tasks.named('run', JavaExec) {
-    main = 'UI.JavaFXApp'  // Ensure this path reflects the actual package and class of your main class
-    classpath = sourceSets.main.runtimeClasspath  // Set classpath for 'run' task
+application {
+    // Define the main class for the application.
+    mainClass = 'org.openjfx.MainApp'
+}
+
+tasks.named('test') {
+    // Use JUnit Platform for unit tests.
+    useJUnitPlatform()
 }
