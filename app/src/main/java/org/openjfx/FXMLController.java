@@ -5,13 +5,19 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.stage.DirectoryChooser;
+import javafx.stage.Stage;
 
 public class FXMLController {
 
@@ -26,7 +32,44 @@ public class FXMLController {
     @FXML
     private TextField repoUrlField; // TextField for repository URL
 
+    @FXML
+    private Button back;
+
     private File selectedDirectory;
+
+    String repoName = new String();
+    
+    
+    public void initializeController(){
+        repoName = Globals.selectedRepoName.trim();
+    }
+
+    public void initializeRepoTextField(){
+        if(!Globals.username.isEmpty() && !repoName.isEmpty()){
+            String url = "https://github.com/" + Globals.username.trim() + "/" + repoName;
+            repoUrlField.appendText(url);
+        }
+        
+    }
+
+    @FXML
+    void backAction(ActionEvent event) {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("RepoScene.fxml"));
+            Parent repoSceneRoot = loader.load();
+            Stage mainWindow = (Stage)back.getScene().getWindow();
+            RepoSceneController repoSceneController = loader.getController();
+            repoSceneController.initialize();
+            Scene repoScene = new Scene(repoSceneRoot);
+            mainWindow.setScene(repoScene);
+            mainWindow.setTitle("Repositories");
+            mainWindow.show();
+
+        } catch (Exception e) {
+            // TODO: handle exception
+            e.printStackTrace();
+        }
+    }
 
     public void initialize() {
         // Populate the ComboBox with programming languages

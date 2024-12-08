@@ -39,10 +39,11 @@ public class MainApp extends Application {
 
     @Override
     public void start(Stage stage) throws Exception {
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/org/openjfx/scene.fxml"));
+        //FXMLLoader loader = new FXMLLoader(getClass().getResource("/org/openjfx/scene.fxml"));
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/org/openjfx/AuthScene.fxml"));
         Parent root = loader.load();
 
-        Scene scene = new Scene(root, 600, 400);
+        Scene scene = new Scene(root, 800, 650);
         stage.setScene(scene);
         stage.setTitle("JavaFX Application");
         stage.show();
