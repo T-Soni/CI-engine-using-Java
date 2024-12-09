@@ -4,6 +4,8 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -12,44 +14,38 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
-import javafx.scene.control.ComboBox;
-import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
-import javafx.scene.control.TextField;
-import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
 
 public class FXMLController {
 
     @FXML
-    private ComboBox<String> languageComboBox;
-    @FXML
     private TextArea outputTextArea;
+
     @FXML
-    private Label outputLabel;
+    private CheckBox testCheckBox; 
     @FXML
-    private CheckBox testCheckBox; // CheckBox to toggle test phase
+    private TextArea buildCommandField; 
     @FXML
-    private TextField repoUrlField; // TextField for repository URL
+    private TextArea testCommandField; 
 
     @FXML
     private Button back;
 
-    private File selectedDirectory;
+    private String repoName = Globals.selectedRepoName.trim();
+    private String repoUrl = "https://github.com/" + Globals.username.trim() + "/" + repoName;
+    private File clonedReposDir = new File(System.getProperty("user.home") + File.separator + "Desktop" + File.separator + "CI_clonedrepos");
 
-    String repoName = new String();
-    
-    
-    public void initializeController(){
+    private String lastCommitHash = ""; // for the last commit hash to detect changes
+
+    public void initializeController() {
         repoName = Globals.selectedRepoName.trim();
     }
 
-    public void initializeRepoTextField(){
-        if(!Globals.username.isEmpty() && !repoName.isEmpty()){
-            String url = "https://github.com/" + Globals.username.trim() + "/" + repoName;
-            repoUrlField.appendText(url);
+    public void initializeRepoTextField() {
+        if (!Globals.username.isEmpty() && !repoName.isEmpty()) {
+            repoUrl = "https://github.com/" + Globals.username.trim() + "/" + repoName;
         }
-        
     }
 
     @FXML
@@ -57,219 +53,172 @@ public class FXMLController {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("RepoScene.fxml"));
             Parent repoSceneRoot = loader.load();
-            Stage mainWindow = (Stage)back.getScene().getWindow();
+            Stage mainWindow = (Stage) back.getScene().getWindow();
             RepoSceneController repoSceneController = loader.getController();
             repoSceneController.initialize();
             Scene repoScene = new Scene(repoSceneRoot);
             mainWindow.setScene(repoScene);
             mainWindow.setTitle("Repositories");
             mainWindow.show();
-
         } catch (Exception e) {
-            // TODO: handle exception
             e.printStackTrace();
         }
     }
 
-    public void initialize() {
-        // Populate the ComboBox with programming languages
-        languageComboBox.getItems().addAll(
-            "Java (Maven)",
-            "Java (Gradle)",
-            "Python",
-            "JavaScript",
-            "Docker"
-        );
-        languageComboBox.setVisible(false); // Initially hidden, will show only if needed
-    }
-
-    // Handle project directory selection
     @FXML
-    private void handleSelectProject() {
-        DirectoryChooser directoryChooser = new DirectoryChooser();
-        directoryChooser.setTitle("Select Project Directory");
-        File directory = directoryChooser.showDialog(outputTextArea.getScene().getWindow());
-
-        if (directory != null) {
-            selectedDirectory = directory;
-
-            // Detect the programming language
-            String detectedLanguage = detectLanguage(selectedDirectory);
-
-            if (!detectedLanguage.equals("Unknown")) {
-                // Display detected language and hide the dropdown
-                outputLabel.setText("Detected Language: " + detectedLanguage);
-                languageComboBox.setVisible(false);
+    private void handleBuildAction() {
+        if (!clonedReposDir.exists()) {
+            if (clonedReposDir.mkdirs()) {
+                outputTextArea.appendText("Created directory: CI_clonedrepos\n");
             } else {
-                // If language is unknown, prompt user to manually select
-                outputLabel.setText("Detected Language: Unknown. Please select.");
-                languageComboBox.setVisible(true);
+                outputTextArea.appendText("Failed to create directory: CI_clonedrepos\n");
+                return;
             }
-        } else {
-            outputTextArea.appendText("No directory selected.\n");
-        }
-    }
-
-    // Handle cloning of repository
-    @FXML
-    private void handleCloneRepository() {
-        String repoUrl = repoUrlField.getText().trim();
-
-        if (repoUrl.isEmpty()) {
-            outputTextArea.appendText("Please enter a repository URL.\n");
-            return;
         }
 
-        String repoName = extractRepoNameFromUrl(repoUrl);
-        File repoDirectory = new File(System.getProperty("user.dir") + File.separator + repoName);
+        File repoDirectory = new File(clonedReposDir, repoName);
 
         if (repoDirectory.exists()) {
             outputTextArea.appendText("Repository already exists, pulling latest changes...\n");
-            pullRepository(repoDirectory);
+            checkAndAddRemote(repoDirectory, repoUrl);
+            pullRepository(repoDirectory, repoUrl);
         } else {
             outputTextArea.appendText("Cloning repository...\n");
             cloneRepository(repoUrl, repoDirectory);
         }
+
+        startCIPipeline(repoDirectory);
     }
 
-    // Clone the repository
     private void cloneRepository(String repoUrl, File repoDirectory) {
-        String command = "git clone " + repoUrl + " " + repoDirectory.getAbsolutePath();
-
-        executeCommand(command, "Repository cloned successfully!", "Error cloning repository.");
+        executeCommand("git clone " + repoUrl + " " + repoDirectory.getAbsolutePath(), clonedReposDir, "Repository cloned successfully!", "Error cloning repository.");
     }
 
-    // Pull the latest changes from the repository
-    private void pullRepository(File repoDirectory) {
-        String command = "git pull";
-
-        executeCommand(command, "Repository updated with the latest changes!", "Error pulling repository.");
+    private void pullRepository(File repoDirectory, String repoUrl) {
+        executeCommand("git pull origin main", repoDirectory, "Repository updated with the latest changes!", "Error pulling repository.");
     }
 
-    // Extract the repository name from the URL (assumes GitHub URL structure)
-    private String extractRepoNameFromUrl(String repoUrl) {
-        String[] parts = repoUrl.split("/");
-        return parts[parts.length - 1].replace(".git", "");
-    }
+    private void checkAndAddRemote(File repoDirectory, String repoUrl) {
+        try {
+            String command = "git remote -v";
+            Process process = Runtime.getRuntime().exec(command, null, repoDirectory);
+            BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+            String line;
+            boolean hasRemote = false;
 
-    // Detect the programming language from files in the project
-    private String detectLanguage(File projectDir) {
-        if (containsFile(projectDir, "pom.xml")) {
-            return "Java (Maven)";
-        } else if (containsFile(projectDir, "build.gradle")) {
-            return "Java (Gradle)";
-        } else if (containsFile(projectDir, "package.json")) {
-            return "JavaScript (Node.js)";
-        } else if (containsFile(projectDir, "requirements.txt") || containsFile(projectDir, "setup.py")) {
-            return "Python";
-        } else if (containsFile(projectDir, "Dockerfile")) {
-            return "Docker";
-        }
-        return "Unknown";
-    }
-
-    // Check if a specific file exists in the project directory
-    private boolean containsFile(File projectDir, String fileName) {
-        File[] files = projectDir.listFiles();
-        if (files != null) {
-            for (File file : files) {
-                if (file.getName().equals(fileName)) {
-                    return true;
+            while ((line = reader.readLine()) != null) {
+                if (line.contains("origin")) {
+                    hasRemote = true;
+                    break;
                 }
             }
-        }
-        return false;
-    }
 
-    // Handle language selection if detected language is not found
-    @FXML
-    private void handleLanguageSelection() {
-        String selectedLanguage = languageComboBox.getValue();
-        if (selectedLanguage != null) {
-            outputLabel.setText("Selected Language: " + selectedLanguage);
-            runBuildTool(selectedLanguage);
-            if (testCheckBox.isSelected()) {
-                runTests(selectedLanguage);
+            if (!hasRemote) {
+                executeCommand("git remote add origin " + repoUrl, repoDirectory, "Remote 'origin' added successfully.", "Error adding remote.");
             }
+        } catch (IOException e) {
+            outputTextArea.appendText("Error checking or adding remote: " + e.getMessage() + "\n");
+        }
+    }
+
+    private void startCIPipeline(File repoDirectory) {
+        Timer timer = new Timer(true);
+        timer.scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run() {
+                checkForChangesAndRunBuild(repoDirectory);
+            }
+        }, 0, 60000); //to repeat every minute
+    }
+
+    private String getLatestCommitHash(File repoDirectory) {
+        return executeCommandAndGetOutput("git log -1 --format=%H", repoDirectory, "Error checking commit hash.");
+    }
+
+    private void checkForChangesAndRunBuild(File repoDirectory) {
+        pullRepository(repoDirectory, repoUrl);
+        String currentCommitHash = getLatestCommitHash(repoDirectory);
+        if (!currentCommitHash.equals(lastCommitHash)) {
+            lastCommitHash = currentCommitHash;
+            outputTextArea.appendText("New commit detected. Running build...\n");
+            runBuildCommand(repoDirectory);
+            if (testCheckBox.isSelected()) {
+                runTestCommand(repoDirectory);
+            }
+        }
+    }
+
+    private void runBuildCommand(File repoDirectory) {
+        String buildCommand = buildCommandField.getText().trim();
+        if (!buildCommand.isEmpty()) {
+            executeMultipleCommands(buildCommand, repoDirectory, "Build completed successfully!", "Build failed.");
         } else {
-            outputTextArea.appendText("Please select a language from the dropdown.\n");
+            outputTextArea.appendText("Please enter a build command.\n");
         }
     }
 
-    // Run the corresponding build tool based on selected programming language
-    private void runBuildTool(String selectedLanguage) {
-        String command = null;
-        switch (selectedLanguage) {
-            case "Java (Maven)":
-                command = "mvn clean install"; // Maven command to build the project
-                break;
-            case "Java (Gradle)":
-                command = "./gradlew build"; // Gradle command to build the project
-                break;
-            case "Python":
-                command = "python3 setup.py install"; // Python setup script
-                break;
-            case "JavaScript (Node.js)":
-                command = "npm install"; // Node.js package install
-                break;
-            case "Docker":
-                command = "docker build -t myimage ."; // Docker build command
-                break;
-            default:
-                outputTextArea.appendText("Unsupported build tool or language.\n");
-                return;
-        }
-
-        executeCommand(command, "Build completed successfully!", "Error during build.");
-    }
-
-    // Run the test phase if applicable
-    private void runTests(String selectedLanguage) {
-        String testCommand = null;
-
-        if (selectedLanguage.equals("Java (Maven)")) {
-            testCommand = "mvn test"; // Maven command to run tests
-        } else if (selectedLanguage.equals("Java (Gradle)")) {
-            testCommand = "./gradlew test"; // Gradle command to run tests
-        } else if (selectedLanguage.equals("Python")) {
-            testCommand = "pytest"; // Python pytest command to run tests
-        } else if (selectedLanguage.equals("JavaScript (Node.js)")) {
-            testCommand = "npm test"; // Node.js test command
+    private void runTestCommand(File repoDirectory) {
+        String testCommand = testCommandField.getText().trim();
+        if (!testCommand.isEmpty()) {
+            executeMultipleCommands(testCommand, repoDirectory, "Tests completed successfully!", "Tests failed.");
         } else {
-            outputTextArea.appendText("No tests available for this language.\n");
-            return;
+            outputTextArea.appendText("Please enter a test command.\n");
         }
-
-        // Detect if tests are present in the project directory
-        if (!containsTestFiles(selectedDirectory)) {
-            outputTextArea.appendText("No tests found. Please add tests to your project.\n");
-            return;
-        }
-
-        executeCommand(testCommand, "Tests completed successfully!", "Error during tests.");
     }
 
-    // Check if test files exist in the project directory
-    private boolean containsTestFiles(File projectDir) {
-        // Check common directories for tests
-        File testDir = new File(projectDir, "src/test");
-        return testDir.exists() && testDir.isDirectory();
-    }
-
-    // Execute the given command (clone/pull, build, or test) and capture output
-    private void executeCommand(String command, String successMessage, String errorMessage) {
+    private void executeCommand(String command, File workingDirectory, String successMessage, String errorMessage) {
         try {
-            Process process = Runtime.getRuntime().exec(command, null, selectedDirectory);
+            Process process = Runtime.getRuntime().exec(command, null, workingDirectory);
+            BufferedReader stdOutputReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+            BufferedReader stdErrorReader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
+            StringBuilder output = new StringBuilder();
+            StringBuilder errorOutput = new StringBuilder();
+            String line;
+
+            while ((line = stdOutputReader.readLine()) != null) {
+                output.append(line).append("\n");
+            }
+            while ((line = stdErrorReader.readLine()) != null) {
+                errorOutput.append(line).append("\n");
+            }
+            int exitCode = process.waitFor();
+
+            if (exitCode == 0) {
+                outputTextArea.appendText(successMessage + "\n");
+            } else {
+                outputTextArea.appendText(errorMessage + "\n" + errorOutput.toString());
+            }
+            if (output.length() > 0) {
+                outputTextArea.appendText(output.toString());
+            }
+        } catch (IOException | InterruptedException e) {
+            outputTextArea.appendText(errorMessage + ": " + e.getMessage() + "\n");
+        }
+    }
+
+    private String executeCommandAndGetOutput(String command, File workingDirectory, String errorMessage) {
+        try {
+            Process process = Runtime.getRuntime().exec(command, null, workingDirectory);
             BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+            StringBuilder output = new StringBuilder();
             String line;
 
             while ((line = reader.readLine()) != null) {
-                outputTextArea.appendText(line + "\n");
+                output.append(line);
             }
-
-            outputTextArea.appendText(successMessage + "\n");
+            return output.toString().trim();
         } catch (IOException e) {
             outputTextArea.appendText(errorMessage + ": " + e.getMessage() + "\n");
+        }
+        return "";
+    }
+
+    private void executeMultipleCommands(String commandText, File workingDirectory, String successMessage, String errorMessage) {
+        String[] commands = commandText.split("\n");
+        for (String command : commands) {
+            if (!command.trim().isEmpty()) {
+                executeCommand(command.trim(), workingDirectory, successMessage, errorMessage);
+            }
         }
     }
 }
