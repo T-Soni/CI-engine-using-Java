@@ -1,31 +1,50 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
-<?import javafx.scene.Scene?>
-<?import javafx.stage.Stage?>
-<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane xmlns:fx="http://javafx.com/fxml" fx:controller="org.openjfx.FXMLController">
+<AnchorPane prefHeight="616.0" prefWidth="729.0" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/23.0.1" fx:controller="org.openjfx.FXMLController">
     <children>
         <!-- Back Button -->
-        <Button fx:id="back" text="Back" layoutX="10" layoutY="10" onAction="#backAction"/>
+        <Button fx:id="back" layoutX="44.0" layoutY="25.0" onAction="#backAction" prefHeight="24.0" prefWidth="90.0" style="-fx-background-color: rgb(34, 151, 153); -fx-border-width: 1; -fx-border-color: rgb(72,207,203);" text="Back" textFill="WHITE">
+         <font>
+            <Font name="System Bold" size="15.0" />
+         </font></Button>
 
         <!-- Output Text Area -->
-        <TextArea fx:id="outputTextArea" layoutX="10" layoutY="50" prefWidth="480" prefHeight="200" wrapText="true" editable="false"/>
+        <TextArea fx:id="outputTextArea" editable="false" layoutX="44.0" layoutY="68.0" prefHeight="177.0" prefWidth="639.0" wrapText="true" />
         
         <!-- Build Command Text Area -->
-        <TextArea fx:id="buildCommandField" layoutX="10" layoutY="270" prefWidth="480" prefHeight="100" wrapText="true"/>
+        <TextArea fx:id="buildCommandField" layoutX="48.0" layoutY="298.0" prefHeight="100" prefWidth="639.0" wrapText="true" />
         
         <!-- Test Command Text Area -->
-        <TextArea fx:id="testCommandField" layoutX="10" layoutY="390" prefWidth="480" prefHeight="100" wrapText="true"/>
+        <TextArea fx:id="testCommandField" layoutX="48.0" layoutY="441.0" prefHeight="100" prefWidth="639.0" wrapText="true" />
         
         <!-- Test Phase CheckBox -->
-        <CheckBox fx:id="testCheckBox" text="Run Tests" layoutX="10" layoutY="510"/>
+        <CheckBox fx:id="testCheckBox" layoutX="47.0" layoutY="555.0" prefHeight="30.0" prefWidth="102.0" text="Run Tests" textFill="#229799">
+         <font>
+            <Font name="System Bold" size="15.0" />
+         </font></CheckBox>
         
         <!-- Execute Build Button -->
-        <Button text="Run Build" layoutX="10" layoutY="540" prefWidth="100" onAction="#handleBuildAction"/>
+        <Button layoutX="321.0" layoutY="555.0" onAction="#handleBuildAction" prefHeight="30.0" prefWidth="110.0" style="-fx-border-color: rgb(72, 207, 203); -fx-border-width: 1; -fx-background-color: rgb(34, 151, 153);" text="Start" textFill="WHITE">
+         <font>
+            <Font name="System Bold" size="15.0" />
+         </font></Button>
+      <Label layoutX="48.0" layoutY="259.0" prefHeight="30.0" prefWidth="199.0" text="Build Commands" textFill="#229799">
+         <font>
+            <Font name="System Bold" size="15.0" />
+         </font>
+      </Label>
+      <Label layoutX="48.0" layoutY="409.0" prefHeight="24.0" prefWidth="140.0" text="Test Commands" textFill="#229799">
+         <font>
+            <Font name="System Bold" size="15.0" />
+         </font>
+      </Label>
         
     </children>
 </AnchorPane>
