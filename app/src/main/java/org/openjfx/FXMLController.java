@@ -15,6 +15,8 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.TextArea;
+import javafx.scene.text.Text;
+import javafx.scene.text.TextFlow;
 import javafx.stage.Stage;
 
 public class FXMLController {
@@ -30,7 +32,12 @@ public class FXMLController {
     private TextArea testCommandField; 
 
     @FXML
+    private TextFlow outputTextFlow;
+
+    @FXML
     private Button back;
+
+    Text text = new Text();
 
     private String repoName = Globals.selectedRepoName.trim();
     private String repoUrl = "https://github.com/" + Globals.username.trim() + "/" + repoName;
@@ -69,9 +76,13 @@ public class FXMLController {
     private void handleBuildAction() {
         if (!clonedReposDir.exists()) {
             if (clonedReposDir.mkdirs()) {
-                outputTextArea.appendText("Created directory: CI_clonedrepos\n");
+                text.setText("Created directory: CI_clonedrepos\n");
+                outputTextFlow.getChildren().add(text);
+                // outputTextArea.appendText("Created directory: CI_clonedrepos\n");
             } else {
-                outputTextArea.appendText("Failed to create directory: CI_clonedrepos\n");
+                text.setText("Failed to create directory: CI_clonedrepos\n");
+                outputTextFlow.getChildren().add(text);
+                // outputTextArea.appendText("Failed to create directory: CI_clonedrepos\n");
                 return;
             }
         }
@@ -79,11 +90,14 @@ public class FXMLController {
         File repoDirectory = new File(clonedReposDir, repoName);
 
         if (repoDirectory.exists()) {
-            outputTextArea.appendText("Repository already exists, pulling latest changes...\n");
+            text.setText("Repository already exists, pulling latest changes...\n");
+            outputTextFlow.getChildren().add(text);
+            // outputTextArea.appendText("Repository already exists, pulling latest changes...\n");
             checkAndAddRemote(repoDirectory, repoUrl);
             pullRepository(repoDirectory, repoUrl);
         } else {
-            outputTextArea.appendText("Cloning repository...\n");
+            text.setText("Cloning repository...\n");
+            outputTextFlow.getChildren().add(text);
             cloneRepository(repoUrl, repoDirectory);
         }
 
@@ -117,7 +131,9 @@ public class FXMLController {
                 executeCommand("git remote add origin " + repoUrl, repoDirectory, "Remote 'origin' added successfully.", "Error adding remote.");
             }
         } catch (IOException e) {
-            outputTextArea.appendText("Error checking or adding remote: " + e.getMessage() + "\n");
+            text.setText("Error checking or adding remote: " + e.getMessage() + "\n");
+            outputTextFlow.getChildren().add(text);
+            // outputTextArea.appendText("Error checking or adding remote: " + e.getMessage() + "\n");
         }
     }
 
@@ -140,7 +156,9 @@ public class FXMLController {
         String currentCommitHash = getLatestCommitHash(repoDirectory);
         if (!currentCommitHash.equals(lastCommitHash)) {
             lastCommitHash = currentCommitHash;
-            outputTextArea.appendText("New commit detected. Running build...\n");
+            text.setText("New commit detected. Running build...\n");
+            outputTextFlow.getChildren().add(text);
+            // outputTextArea.appendText("New commit detected. Running build...\n");
             runBuildCommand(repoDirectory);
             if (testCheckBox.isSelected()) {
                 runTestCommand(repoDirectory);
@@ -153,7 +171,9 @@ public class FXMLController {
         if (!buildCommand.isEmpty()) {
             executeMultipleCommands(buildCommand, repoDirectory, "Build completed successfully!", "Build failed.");
         } else {
-            outputTextArea.appendText("Please enter a build command.\n");
+            text.setText("Please enter a build command.\n");
+            outputTextFlow.getChildren().add(text);
+            // outputTextArea.appendText("Please enter a build command.\n");
         }
     }
 
@@ -162,7 +182,9 @@ public class FXMLController {
         if (!testCommand.isEmpty()) {
             executeMultipleCommands(testCommand, repoDirectory, "Tests completed successfully!", "Tests failed.");
         } else {
-            outputTextArea.appendText("Please enter a test command.\n");
+            text.setText("Please enter a test command.\n");
+            outputTextFlow.getChildren().add(text);
+            // outputTextArea.appendText("Please enter a test command.\n");
         }
     }
 
@@ -184,15 +206,27 @@ public class FXMLController {
             int exitCode = process.waitFor();
 
             if (exitCode == 0) {
-                outputTextArea.appendText(successMessage + "\n");
+                //green
+                //outputTextArea.appendText(successMessage + "\n");
+                Text successText = new Text(successMessage + "\n");
+                successText.setStyle("-fx-fill: green;");
+                outputTextFlow.getChildren().add(successText);
             } else {
-                outputTextArea.appendText(errorMessage + "\n" + errorOutput.toString());
+                //red
+                //outputTextArea.appendText(errorMessage + "\n" + errorOutput.toString());
+                Text errorText = new Text(successMessage + "\n");
+                errorText.setStyle("-fx-fill: red;");
+                outputTextFlow.getChildren().add(errorText);
             }
             if (output.length() > 0) {
-                outputTextArea.appendText(output.toString());
+                text.setText(output.toString());
+                outputTextFlow.getChildren().add(text);
+                // outputTextArea.appendText(output.toString());
             }
         } catch (IOException | InterruptedException e) {
-            outputTextArea.appendText(errorMessage + ": " + e.getMessage() + "\n");
+            text.setText(errorMessage + ": " + e.getMessage() + "\n");
+            outputTextFlow.getChildren().add(text);
+            // outputTextArea.appendText(errorMessage + ": " + e.getMessage() + "\n");
         }
     }
 
@@ -208,7 +242,9 @@ public class FXMLController {
             }
             return output.toString().trim();
         } catch (IOException e) {
-            outputTextArea.appendText(errorMessage + ": " + e.getMessage() + "\n");
+            text.setText(errorMessage + ": " + e.getMessage() + "\n");
+            outputTextFlow.getChildren().add(text);
+            // outputTextArea.appendText(errorMessage + ": " + e.getMessage() + "\n");
         }
         return "";
     }

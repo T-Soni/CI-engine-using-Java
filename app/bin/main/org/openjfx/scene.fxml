@@ -6,17 +6,15 @@
 <?import javafx.scene.control.TextArea?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.text.Font?>
+<?import javafx.scene.text.TextFlow?>
 
-<AnchorPane prefHeight="616.0" prefWidth="729.0" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/23.0.1" fx:controller="org.openjfx.FXMLController">
+<AnchorPane prefHeight="616.0" prefWidth="729.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.openjfx.FXMLController">
     <children>
         <!-- Back Button -->
         <Button fx:id="back" layoutX="44.0" layoutY="25.0" onAction="#backAction" prefHeight="24.0" prefWidth="90.0" style="-fx-background-color: rgb(34, 151, 153); -fx-border-width: 1; -fx-border-color: rgb(72,207,203);" text="Back" textFill="WHITE">
          <font>
             <Font name="System Bold" size="15.0" />
          </font></Button>
-
-        <!-- Output Text Area -->
-        <TextArea fx:id="outputTextArea" editable="false" layoutX="44.0" layoutY="68.0" prefHeight="177.0" prefWidth="639.0" wrapText="true" />
         
         <!-- Build Command Text Area -->
         <TextArea fx:id="buildCommandField" layoutX="48.0" layoutY="298.0" prefHeight="100" prefWidth="639.0" wrapText="true" />
@@ -25,7 +23,7 @@
         <TextArea fx:id="testCommandField" layoutX="48.0" layoutY="441.0" prefHeight="100" prefWidth="639.0" wrapText="true" />
         
         <!-- Test Phase CheckBox -->
-        <CheckBox fx:id="testCheckBox" layoutX="47.0" layoutY="555.0" prefHeight="30.0" prefWidth="102.0" text="Run Tests" textFill="#229799">
+        <CheckBox fx:id="testCheckBox" layoutX="47.0" layoutY="555.0" prefHeight="30.0" prefWidth="183.0" text="Run Tests" textFill="#229799">
          <font>
             <Font name="System Bold" size="15.0" />
          </font></CheckBox>
@@ -45,6 +43,7 @@
             <Font name="System Bold" size="15.0" />
          </font>
       </Label>
+      <TextFlow fx:id="outputTextFlow" layoutX="50.0" layoutY="74.0" prefHeight="176.0" prefWidth="639.0" />
         
     </children>
 </AnchorPane>
