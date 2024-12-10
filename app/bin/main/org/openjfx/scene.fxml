@@ -43,7 +43,7 @@
             <Font name="System Bold" size="15.0" />
          </font>
       </Label>
-      <TextFlow fx:id="outputTextFlow" layoutX="50.0" layoutY="74.0" prefHeight="176.0" prefWidth="639.0" />
+      <TextFlow fx:id="outputTextFlow" layoutX="50.0" layoutY="74.0" prefHeight="176.0" prefWidth="639.0" style="-fx-border-color: rgb(66,66,66);" />
         
     </children>
 </AnchorPane>
