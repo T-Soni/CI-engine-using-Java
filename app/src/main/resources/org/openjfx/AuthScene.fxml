@@ -13,25 +13,29 @@
             <Font size="48.0" />
          </font>
       </Label>
+      
+      <!-- GitHub Username Label -->
       <Label layoutX="123.0" layoutY="147.0" prefHeight="29.0" prefWidth="264.0" text="GitHub Username">
          <font>
             <Font name="System Bold" size="15.0" />
          </font>
       </Label>
+      
+      <!-- GitHub Username Input Field -->
       <TextField fx:id="usernameField" layoutX="123.0" layoutY="184.0" prefHeight="30.0" prefWidth="591.0" />
-      <Label layoutX="123.0" layoutY="341.0" prefHeight="30.0" prefWidth="198.0" text="E-mail address">
-         <font>
-            <Font name="System Bold" size="15.0" />
-         </font>
-      </Label>
-      <TextField fx:id="emailField" layoutX="123.0" layoutY="379.0" prefHeight="30.0" prefWidth="591.0" />
+      
+      <!-- Full Name Label -->
       <Label layoutX="123.0" layoutY="244.0" prefHeight="30.0" prefWidth="205.0" text="Full Name">
          <font>
             <Font name="System Bold" size="15.0" />
          </font>
       </Label>
+      
+      <!-- Full Name Input Field -->
       <TextField fx:id="fullnameField" layoutX="123.0" layoutY="282.0" prefHeight="30.0" prefWidth="591.0" />
-      <Button fx:id="saveButton" layoutX="362.0" layoutY="481.0" mnemonicParsing="false" onAction="#saveButtonAction" prefHeight="30.0" prefWidth="97.0" style="-fx-background-color: rgb(34, 151, 153); -fx-text-fill: white; -fx-border-width: 1; -fx-border-color: rgb(72, 207, 203);" text="Save" textFill="#424242" >
+      
+      <!-- Save Button -->
+      <Button fx:id="saveButton" layoutX="362.0" layoutY="381.0" mnemonicParsing="false" onAction="#saveButtonAction" prefHeight="30.0" prefWidth="97.0" style="-fx-background-color: rgb(34, 151, 153); -fx-text-fill: white; -fx-border-width: 1; -fx-border-color: rgb(72, 207, 203);" text="Save" textFill="#424242" >
          <font>
             <Font name="System Bold" size="17.0" />
          </font>
